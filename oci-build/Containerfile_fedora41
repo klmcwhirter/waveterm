@@ -1,0 +1,34 @@
+FROM fedora:41 AS build
+
+RUN groupadd -g 1000 buildgrp && \
+	useradd -u 1000 -g buildgrp -G wheel builder
+
+# Install dependencies as root
+RUN dnf update --refresh -y
+
+# install snapd, but exit in error to restart after installing snapd
+# RUN dnf install -y snapd libarchive-devel fuse squashfuse squashfs-tools && \
+#     ln -s /var/lib/snapd/snap /snap && \
+#     echo "Start build again..."
+
+# RUN snap install snapcraft --classic
+
+RUN dnf install -y zip zig golang go-task nodejs file && \
+	npm -g install corepack && \
+	corepack enable && \
+	git clone https://github.com/wavetermdev/waveterm.git && \
+	chown -R builder:buildgrp /waveterm
+
+USER 1000:1000
+
+WORKDIR /waveterm
+
+RUN yarn config set --home enableTelemetry 0
+
+COPY --chown=builder:buildgrp ./Taskfile_linux.yml /waveterm/Taskfile_local.yml
+
+# run these inside container:
+# docker compose run -it --rm --remove-orphans waveterm bash
+
+# RUN go-task -t Taskfile_local.yml -y package:linuxonly
+# RUN ls -alh make/ || true

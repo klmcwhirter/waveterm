@@ -1,0 +1,49 @@
+version: "3"
+
+includes:
+  packaging:
+    taskFile: ./Taskfile.yml
+    flatten: true
+
+tasks:
+  package:linuxonly:
+    desc: Package the application for linux only.
+    cmds:
+        - cmd: '{{.RMRF}} ./make/*'
+          # ignore_error: true
+        - yarn build:prod && yarn electron-builder --linux=zip -c electron-builder.config.cjs -p never
+    deps:
+        - yarn
+        - build:server:linuxonly
+        - build:wsh:linuxonly
+
+  build:server:linuxonly:
+    desc: Build the wavesrv component for linux only.
+    cmds:
+        - task: build:server:linux
+    deps:
+        - go:mod:tidy
+        - generate
+    sources:
+        - "cmd/server/*.go"
+        - "pkg/**/*.go"
+    generates:
+        - dist/bin/wavesrv.*
+
+  build:wsh:linuxonly:
+    desc: Build the wsh component for linux only.
+    cmds:
+        - cmd: "{{.RM}} dist/bin/wsh*"
+          ignore_error: true
+        - task: build:wsh:internal
+          vars:
+              GOOS: linux
+              GOARCH: amd64
+    deps:
+        - go:mod:tidy
+        - generate
+    sources:
+        - "cmd/wsh/**/*.go"
+        - "pkg/**/*.go"
+    generates:
+        - dist/bin/wsh-*

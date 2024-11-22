@@ -1,0 +1,15 @@
+services:
+  waveterm:
+    image: waveterm
+    environment:
+      TZ: PST8PDT
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Containerfile_fedora41
+      additional_contexts:
+        built: $PWD
+    volumes:
+      - ./built:/waveterm/make:rw
+    deploy:
+      replicas: 1
