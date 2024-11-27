@@ -13,11 +13,20 @@ docker compose --progress=plain build
 ## Finish the build
 
 ```bash
-mkdir make  # mounted as a volume in compose.yml
+mkdir built  # mounted as a volume in compose.yml
 
 docker compose run -it --rm waveterm bash
 
 go-task -t Taskfile_local.yml -y package:linuxonly
+
+```
+
+or combine the last 2 lines if you do not need a bash session:
+
+```bash
+mkdir built  # mounted as a volume in compose.yml
+
+docker compose run -it --rm waveterm go-task -t Taskfile_local.yml -y package:linuxonly
 
 ```
 
